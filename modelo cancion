@@ -1,0 +1,27 @@
+package modelo;
+
+public class Cancion {
+
+    private final String titulo;
+    private final float duracion;
+    private final String genero;
+    private final int anio;
+
+    public Cancion(String titulo, float duracion, String genero, int anio) {
+        this.titulo = titulo;
+        this.duracion = duracion;
+        this.genero = genero;
+        this.anio = anio;
+    }
+
+    // Getters necesarios para JTable
+    public String getTitulo() { return titulo; }
+    public float getDuracion() { return duracion; }
+    public String getGenero() { return genero; }
+    public int getAnio() { return anio; }
+    
+    public void mostrarInfo() {
+        // Utiliza todos los campos para evitar advertencias
+        System.out.println("Título: " + titulo + " Duración: " + duracion + " Genero: " + genero + " Anio: " + anio);
+    }
+}
