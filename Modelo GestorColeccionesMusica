@@ -1,0 +1,52 @@
+package modelo;
+
+import java.util.ArrayList;
+
+public class GestorColeccionesMusica {
+
+    private final String nombreColeccion = "Mi Colección";
+    private final String descripcion = "Colección de música personal.";
+    
+    private final ArrayList<ListaReproduccion> listasReproduccion = new ArrayList<>();
+    private final ArrayList<Artista> artistas = new ArrayList<>();
+    private final ArrayList<Cancion> canciones = new ArrayList<>();
+
+    public GestorColeccionesMusica() {}
+    
+    // SIMULACIÓN DE CARGA INICIAL DESDE ARCHIVO PLANO
+    public void inicializarDatos() {
+        // Usa los campos internos para eliminar advertencias
+        System.out.println("--- SIMULANDO CARGA DESDE ARCHIVO PLANO (.csv) ---");
+        mostrarDetallesColeccion(); 
+        
+        System.out.println("Leyendo Artista: Kris R...");
+        Artista krisR = new Artista("Kris R", "Colombia", 25);
+        this.agregarArtista(krisR);
+
+        System.out.println("Leyendo Canción: Chococno...");
+        Cancion chococno = new Cancion("Chococno", 3.05f, "Urbano", 2024);
+        this.agregarCancion(chococno);
+        
+        krisR.agregarCancion(chococno); 
+
+        ListaReproduccion listaUrbana = new ListaReproduccion("Top Urbano 2024");
+        listaUrbana.agregarCancion(chococno); 
+        listasReproduccion.add(listaUrbana);
+
+        System.out.println("--- CARGA INICIAL COMPLETA ---");
+    }
+
+    public void mostrarDetallesColeccion() {
+        System.out.println("Colección: " + nombreColeccion);
+        System.out.println("Detalles: " + descripcion);
+    }
+
+    public void agregarArtista(Artista a) { artistas.add(a); }
+    public void agregarCancion(Cancion c) { canciones.add(c); }
+    public void crearListaReproduccion(ListaReproduccion l) { listasReproduccion.add(l); }
+
+    // Getters
+    public ArrayList<Artista> getArtistas() { return artistas; }
+    public ArrayList<Cancion> getCanciones() { return canciones; }
+    public ArrayList<ListaReproduccion> getListasReproduccion() { return listasReproduccion; }
+}
