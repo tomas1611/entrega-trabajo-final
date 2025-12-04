@@ -1,0 +1,130 @@
+package vista;
+
+import modelo.Cancion;
+import modelo.GestorColeccionesMusica;
+import modelo.ListaReproduccion;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
+
+public class PanelListas extends JPanel {
+
+    private final GestorColeccionesMusica gestor;
+
+    public PanelListas(GestorColeccionesMusica gestor) {
+        this.gestor = gestor;
+        inicializarComponentes();
+    }
+    
+    private void inicializarComponentes() {
+        setLayout(new BorderLayout(10, 10));
+        
+        ArrayList<ListaReproduccion> listas = gestor.getListasReproduccion();
+        String[] columnNames = {"Nombre", "Fecha Creación", "Total Canciones"};
+        Object[][] data = new Object[listas.size()][3];
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (int i = 0; i < listas.size(); i++) {
+            ListaReproduccion l = listas.get(i);
+            data[i][0] = l.getNombre();
+            data[i][1] = sdf.format(l.getFechaCreacion());
+            data[i][2] = l.getCanciones().size(); 
+        }
+
+        JTable tablaListas = new JTable(data, columnNames);
+        JLabel titulo = new JLabel("Gestión de Listas de Reproducción", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+
+        JScrollPane scrollPane = new JScrollPane(tablaListas);
+        
+        // Panel para botones (CREAR y AGREGAR)
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        
+        JButton btnCrear = new JButton("Crear Nueva Lista Vacía");
+        btnCrear.addActionListener(e -> mostrarDialogoCrearLista()); 
+        
+        // ⬅️ Botón para la funcionalidad de MODIFICACIÓN
+        JButton btnAgregarCancion = new JButton("Agregar Canción a Lista Existente");
+        btnAgregarCancion.addActionListener(e -> mostrarDialogoAgregarCancion()); 
+
+        panelBotones.add(btnCrear);
+        panelBotones.add(btnAgregarCancion);
+        
+        add(titulo, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(panelBotones, BorderLayout.SOUTH); // Añadimos el panel de botones
+    }
+    
+    private void mostrarDialogoCrearLista() {
+        String nombreLista = JOptionPane.showInputDialog(this, 
+            "Ingrese el nombre de la nueva Lista de Reproducción:", 
+            "Crear Lista", JOptionPane.QUESTION_MESSAGE);
+
+        if (nombreLista != null && !nombreLista.trim().isEmpty()) {
+            ListaReproduccion nuevaLista = new ListaReproduccion(nombreLista.trim());
+            gestor.crearListaReproduccion(nuevaLista); 
+            
+            JOptionPane.showMessageDialog(this, "Lista '" + nombreLista + "' creada con éxito.");
+            
+            ((VentanaPrincipal) SwingUtilities.getWindowAncestor(this)).cambiarPanel(new PanelListas(gestor));
+        }
+    }
+    
+    // ⬅️ Funcionalidad de MODIFICACIÓN: Agregar una canción a una lista existente
+    private void mostrarDialogoAgregarCancion() {
+        ArrayList<Cancion> canciones = gestor.getCanciones();
+        ArrayList<ListaReproduccion> listas = gestor.getListasReproduccion();
+
+        if (canciones.isEmpty() || listas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe haber al menos una canción y una lista creadas.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // ComboBox para Canciones
+        JComboBox<String> cancionCombo = new JComboBox<>();
+        for (Cancion c : canciones) {
+            cancionCombo.addItem(c.getTitulo());
+        }
+
+        // ComboBox para Listas
+        JComboBox<String> listaCombo = new JComboBox<>();
+        for (ListaReproduccion l : listas) {
+            listaCombo.addItem(l.getNombre());
+        }
+
+        JPanel panel = new JPanel(new GridLayout(2, 2));
+        panel.add(new JLabel("Seleccionar Canción:"));
+        panel.add(cancionCombo);
+        panel.add(new JLabel("Seleccionar Lista:"));
+        panel.add(listaCombo);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, 
+                "Agregar Canción a Lista", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String tituloCancion = (String) cancionCombo.getSelectedItem();
+            String nombreLista = (String) listaCombo.getSelectedItem();
+            
+            // Buscar la Canción y la Lista seleccionadas
+            Cancion cancionSeleccionada = canciones.stream()
+                    .filter(c -> c.getTitulo().equals(tituloCancion))
+                    .findFirst().orElse(null);
+
+            ListaReproduccion listaDestino = listas.stream()
+                    .filter(l -> l.getNombre().equals(nombreLista))
+                    .findFirst().orElse(null);
+            
+            // Modificar la lista (agrega la canción)
+            if (listaDestino != null && cancionSeleccionada != null) {
+                listaDestino.agregarCancion(cancionSeleccionada);
+                JOptionPane.showMessageDialog(this, "Canción agregada a la lista '" + nombreLista + "'.");
+                
+                // Refrescar el panel para actualizar el contador de canciones
+                ((VentanaPrincipal) SwingUtilities.getWindowAncestor(this)).cambiarPanel(new PanelListas(gestor));
+            }
+        }
+    }
+}
