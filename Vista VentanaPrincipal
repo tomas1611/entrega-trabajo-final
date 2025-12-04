@@ -1,0 +1,67 @@
+package vista;
+
+import modelo.GestorColeccionesMusica;
+import javax.swing.*;
+import java.awt.*;
+
+public class VentanaPrincipal extends JFrame {
+
+    private final GestorColeccionesMusica gestor;
+
+    public VentanaPrincipal() {
+        // Inicializa el gestor y simula la carga de datos
+        gestor = new GestorColeccionesMusica();
+        gestor.inicializarDatos();
+
+        setTitle("Gestor de Colecciones de Música");
+        setSize(900, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        // Inicializamos la primera vista (el PanelListas)
+        PanelListas panelListasInicial = new PanelListas(gestor); 
+
+        JPanel menu = crearPanelMenu();
+
+        add(menu, BorderLayout.WEST);
+        add(panelListasInicial, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    private JPanel crearPanelMenu() {
+        JPanel panelMenu = new JPanel();
+        // Usamos GridLayout para apilar los botones
+        panelMenu.setLayout(new GridLayout(3, 1, 5, 5));
+
+        JButton btnListas = new JButton("Listas");
+        JButton btnArtistas = new JButton("Artistas");
+        JButton btnCanciones = new JButton("Canciones");
+
+        // Creamos nuevas instancias en el ActionListener para forzar la actualización de datos (refresco)
+        btnListas.addActionListener(e -> cambiarPanel(new PanelListas(gestor)));
+        btnArtistas.addActionListener(e -> cambiarPanel(new PanelArtistas(gestor)));
+        btnCanciones.addActionListener(e -> cambiarPanel(new PanelCanciones(gestor)));
+
+        panelMenu.add(btnListas);
+        panelMenu.add(btnArtistas);
+        panelMenu.add(btnCanciones);
+
+        return panelMenu;
+    }
+
+    // Método público para ser accedido por los Paneles (para auto-refresco)
+    public void cambiarPanel(JPanel panel) { 
+        // Eliminamos el segundo componente (el panel central actual)
+        getContentPane().remove(1);
+        // Añadimos el nuevo panel
+        add(panel, BorderLayout.CENTER);
+        // Forzamos el redibujado de la ventana
+        revalidate();
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(VentanaPrincipal::new);
+    }
+}
