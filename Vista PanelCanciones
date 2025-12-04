@@ -1,0 +1,112 @@
+package vista;
+
+import modelo.Artista;
+import modelo.Cancion;
+import modelo.GestorColeccionesMusica;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+public class PanelCanciones extends JPanel {
+    
+    private final GestorColeccionesMusica gestor;
+
+    public PanelCanciones(GestorColeccionesMusica gestor) {
+        this.gestor = gestor;
+        inicializarComponentes();
+    }
+    
+    private void inicializarComponentes() {
+        setLayout(new BorderLayout(10, 10));
+        
+        ArrayList<Cancion> listaCanciones = gestor.getCanciones(); 
+        String[] columnNames = {"Título", "Duración", "Género", "Año"};
+        
+        Object[][] data = new Object[listaCanciones.size()][4];
+        
+        for (int i = 0; i < listaCanciones.size(); i++) {
+            Cancion c = listaCanciones.get(i);
+            data[i][0] = c.getTitulo();
+            data[i][1] = c.getDuracion() + " min"; 
+            data[i][2] = c.getGenero();
+            data[i][3] = c.getAnio();
+        }
+
+        JTable tablaCanciones = new JTable(data, columnNames);
+        JLabel titulo = new JLabel("Gestión de Canciones", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+
+        JScrollPane scrollPane = new JScrollPane(tablaCanciones);
+        
+        JButton btnCrear = new JButton("Crear Nueva Canción");
+        btnCrear.addActionListener(e -> mostrarDialogoCrearCancion()); 
+
+        add(titulo, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(btnCrear, BorderLayout.SOUTH);
+    }
+    
+    private void mostrarDialogoCrearCancion() {
+        // Campos de texto para la Canción
+        JTextField tituloField = new JTextField(15);
+        JTextField duracionField = new JTextField(15);
+        JTextField generoField = new JTextField(15);
+        JTextField anioField = new JTextField(15);
+        
+        // ComboBox para asociar el Artista
+        ArrayList<Artista> artistas = gestor.getArtistas();
+        JComboBox<String> artistaCombo = new JComboBox<>();
+        if (artistas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe crear al menos un Artista antes de crear una Canción.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        for (Artista a : artistas) {
+            artistaCombo.addItem(a.getNombre());
+        }
+        
+        JPanel panel = new JPanel(new GridLayout(5, 2));
+        panel.add(new JLabel("Título:"));
+        panel.add(tituloField);
+        panel.add(new JLabel("Duración (float):"));
+        panel.add(duracionField);
+        panel.add(new JLabel("Género:"));
+        panel.add(generoField);
+        panel.add(new JLabel("Año (número):"));
+        panel.add(anioField);
+        panel.add(new JLabel("Asociar Artista:"));
+        panel.add(artistaCombo);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, 
+                "Crear Canción", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                String titulo = tituloField.getText();
+                float duracion = Float.parseFloat(duracionField.getText());
+                String genero = generoField.getText();
+                int anio = Integer.parseInt(anioField.getText());
+                String artistaSeleccionado = (String) artistaCombo.getSelectedItem();
+
+                // 1. Crear el objeto Canción y guardarlo en el Gestor
+                Cancion nuevaCancion = new Cancion(titulo, duracion, genero, anio);
+                gestor.agregarCancion(nuevaCancion);
+                
+                // 2. Asociar la Canción al Artista (funcionalidad de asociación)
+                for (Artista a : artistas) {
+                    if (a.getNombre().equals(artistaSeleccionado)) {
+                        a.agregarCancion(nuevaCancion);
+                        break;
+                    }
+                }
+                
+                JOptionPane.showMessageDialog(this, "Canción '" + titulo + "' creada y asociada a " + artistaSeleccionado + ".");
+                
+                // 3. Refrescar el panel
+                ((VentanaPrincipal) SwingUtilities.getWindowAncestor(this)).cambiarPanel(new PanelCanciones(gestor));
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Error: Verifique Duración (float) y Año (entero).", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+}
