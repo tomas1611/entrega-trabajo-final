@@ -1,0 +1,34 @@
+package modelo;
+
+import java.util.ArrayList;
+import java.util.Date;
+
+public class ListaReproduccion {
+
+    private final String nombre;
+    private final Date fechaCreacion;
+    private final ArrayList<Cancion> canciones;
+
+    public ListaReproduccion(String nombre) {
+        this.nombre = nombre;
+        this.fechaCreacion = new Date();
+        this.canciones = new ArrayList<>();
+    }
+    
+    public String getNombre() { return nombre; }
+    public Date getFechaCreacion() { return fechaCreacion; }
+
+    public void agregarCancion(Cancion c) {
+        canciones.add(c);
+    }
+    
+    // Getter para acceder a la colección de canciones
+    public ArrayList<Cancion> getCanciones() {
+        return canciones;
+    }
+    
+    public void mostrarInformacion() {
+        // Utiliza todos los campos para evitar advertencias
+        System.out.println("Lista: " + nombre + " Fecha: " + fechaCreacion);
+    }
+}
