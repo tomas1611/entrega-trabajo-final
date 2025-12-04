@@ -1,0 +1,91 @@
+package vista;
+
+import modelo.Artista;
+import modelo.GestorColeccionesMusica;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+public class PanelArtistas extends JPanel {
+    
+    private final GestorColeccionesMusica gestor;
+
+    public PanelArtistas(GestorColeccionesMusica gestor) {
+        this.gestor = gestor;
+        inicializarComponentes();
+    }
+    
+    private void inicializarComponentes() {
+        setLayout(new BorderLayout(10, 10));
+        
+        // 1. Obtener los datos del Gestor
+        ArrayList<Artista> listaArtistas = gestor.getArtistas();
+        String[] columnNames = {"Nombre", "Nacionalidad", "Edad", "Canciones Registradas"};
+        Object[][] data = new Object[listaArtistas.size()][4];
+        
+        // 2. Mapear ArrayList a la matriz Object[][] para JTable
+        for (int i = 0; i < listaArtistas.size(); i++) {
+            Artista a = listaArtistas.get(i);
+            data[i][0] = a.getNombre();
+            data[i][1] = a.getNacionalidad();
+            data[i][2] = a.getEdad();
+            data[i][3] = a.getCanciones().size(); 
+        }
+        
+        // 3. Crear y configurar la tabla
+        JTable tablaArtistas = new JTable(data, columnNames);
+        JLabel titulo = new JLabel("Gestión de Artistas", SwingConstants.CENTER);
+        titulo.setFont(new Font("Arial", Font.BOLD, 20));
+
+        JScrollPane scrollPane = new JScrollPane(tablaArtistas);
+        
+        // 4. Botón de Creación
+        JButton btnCrear = new JButton("Crear Nuevo Artista");
+        btnCrear.addActionListener(e -> mostrarDialogoCrearArtista()); 
+
+        add(titulo, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        add(btnCrear, BorderLayout.SOUTH);
+    }
+    
+    private void mostrarDialogoCrearArtista() {
+        // Campos de texto para el formulario
+        JTextField nombreField = new JTextField(15);
+        JTextField nacionalidadField = new JTextField(15);
+        JTextField edadField = new JTextField(15);
+
+        JPanel panel = new JPanel(new GridLayout(3, 2));
+        panel.add(new JLabel("Nombre:"));
+        panel.add(nombreField);
+        panel.add(new JLabel("Nacionalidad:"));
+        panel.add(nacionalidadField);
+        panel.add(new JLabel("Edad (número):"));
+        panel.add(edadField);
+
+        // Mostrar el diálogo de confirmación
+        int result = JOptionPane.showConfirmDialog(null, panel, 
+                "Crear Artista", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                // Captura y validación de datos
+                String nombre = nombreField.getText();
+                String nacionalidad = nacionalidadField.getText();
+                int edad = Integer.parseInt(edadField.getText());
+
+                // 1. Crear el objeto Artista
+                Artista nuevoArtista = new Artista(nombre, nacionalidad, edad);
+                // 2. Llamar al Gestor para guardar (Interacción Vista -> Modelo)
+                gestor.agregarArtista(nuevoArtista); 
+                
+                JOptionPane.showMessageDialog(this, "Artista '" + nombre + "' creado con éxito.");
+                
+                // 3. Llamar al método público de VentanaPrincipal para refrescar el panel
+                ((VentanaPrincipal) SwingUtilities.getWindowAncestor(this)).cambiarPanel(new PanelArtistas(gestor));
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Error: La edad debe ser un número válido.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+}
